@@ -51,6 +51,8 @@ void XCurMgr::releaseAll()
 
 void XCurMgr::openFile()
 {
+    releaseAll();
+
     //读二进制文件
     QFile file(m_sFileCur);
     if (!file.open(QIODevice::ReadOnly))
