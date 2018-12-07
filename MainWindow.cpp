@@ -7,13 +7,24 @@
 
 MainWindow::MainWindow(QString fileCur, QWidget *parent)
     : QMainWindow(parent)
-{
+{    
+    QString sTitle = "PSD-BPA稳定计算结果文件(*.cur)绘图工具";
+    if(!fileCur.isEmpty())
+    {
+        sTitle += "-";
+        sTitle += fileCur;
+    }
+    setWindowTitle(sTitle);
+
     m_curMgr.m_sFileCur = fileCur;
     initUI();
 //    resize(1000,750);
     showMaximized();
+
     connect(&m_curMgr, &XCurMgr::signal_DataReady, this, &MainWindow::updateCuveList);
     QTimer::singleShot(0, &m_curMgr, &XCurMgr::openFile);
+
+    QTimer::singleShot(10, this, &MainWindow::showWaitingDlg);
 }
 
 MainWindow::~MainWindow()
@@ -34,10 +45,12 @@ void MainWindow::initUI()
     chartView->setRenderHint(QPainter::Antialiasing);
 
     m_listView_curve = new QListView;
+    m_listView_curve->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
+    m_listView_curve->setSpacing(0);
     m_listView_curve->setMinimumWidth(150);
-    m_listView_curve->setMaximumWidth(350);
+    m_listView_curve->setMaximumWidth(450);
     m_listView_curve->setStyleSheet("QListView {background-color:white;}"
-                                   "QListView::item{border:none; height: 35px;}"
+                                   "QListView::item{border:none; height: 30px;}"
                                    "QListView::item:selected{background: rgba(0, 120, 215,200);}"
                                    "QListView::item::hover {background: rgba(0, 120, 215,100);}");
     connect(m_listView_curve, &QListView::clicked, this, &MainWindow::updateCurveChart);
@@ -56,12 +69,46 @@ void MainWindow::initUI()
     pal.setColor(QPalette::Window, QRgb(0xf0f0f0));
     pal.setColor(QPalette::WindowText, QRgb(0x404044));
     window()->setPalette(pal);
+
+    m_pMovieWaiting = new QMovie(":/Res/loading.gif");
+    m_pLabelWaiting = new QLabel(this);
+    m_pLabelWaiting->setWindowFlag(Qt::FramelessWindowHint);
+    int wid = 100, hei = 100;
+    m_pLabelWaiting->setFixedSize(wid, hei);
+    m_pLabelWaiting->setScaledContents(true);
+    m_pLabelWaiting->setMovie(m_pMovieWaiting);
+    m_pMovieWaiting->start();
+}
+
+void MainWindow::showWaitingDlg()
+{
+    updateWaitingDlg();
+}
+
+void MainWindow::updateWaitingDlg()
+{
+    if(m_pLabelWaiting)
+    {
+        m_pLabelWaiting->move((this->width()-m_pLabelWaiting->width())/2, (this->height()-m_pLabelWaiting->height())/2);
+        m_pLabelWaiting->show();
+    }
+}
+
+
+void MainWindow::hideWaitingDlg()
+{
+    if(m_pLabelWaiting)
+    {
+        m_pLabelWaiting->hide();
+    }
 }
 
 void MainWindow::updateCuveList()
 {
+    hideWaitingDlg();
+
     qDebug() << "更新曲线列表，开始...";
-    QStringList allTypeName = m_curMgr.m_allCurves.keys();
+    QStringList allTypeName = m_curMgr.m_curvesMap.keys();
     m_model_curve->setStringList(allTypeName);
     qDebug() << "更新曲线列表，完成。";
 }
@@ -75,8 +122,8 @@ void MainWindow::updateCurveChart()
 
     QString sCurveName = m_model_curve->stringList().at(iRow);//曲线名称
     XCurve *pCurve = Q_NULLPTR;
-    if(m_curMgr.m_allCurves.contains(sCurveName))
-        pCurve = m_curMgr.m_allCurves.value(sCurveName);
+    if(m_curMgr.m_curvesMap.contains(sCurveName))
+        pCurve = m_curMgr.m_curvesMap.value(sCurveName);
     if(pCurve)
     {
         m_chart->removeAllSeries();//清空所有曲线
@@ -118,4 +165,9 @@ void MainWindow::updateCurveChart()
 //        m_chart->axisX()->setRange(minX, maxX);
 //        m_chart->axisY()->setRange(minY, maxY);
     }
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    updateWaitingDlg();
 }

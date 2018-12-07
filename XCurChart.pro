@@ -36,7 +36,8 @@ HEADERS += \
         MainWindow.h \
 #    XxwCppPub/Curve.h \
 #    XxwCppPub/XxwCppPub.h \
-    XCurMgr.h
+    XCurMgr.h \
+    Res/version.rc
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -66,3 +67,6 @@ CONFIG(debug, debug|release) {
   OBJECTS_DIR = ./release/obj   #将生成的对象文件放在专门的obj文件夹下
   MOC_DIR = ./release/moc       #将QT自动生成的对象放在moc文件夹下
 }
+
+RESOURCES += \
+    Res.qrc

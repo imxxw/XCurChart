@@ -7,6 +7,8 @@
 #include <QChart>
 #include <QListView>
 #include <QStringListModel>
+#include <QMovie>
+#include <QLabel>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -21,8 +23,14 @@ public:
     void initUI();
 
 public Q_SLOTS:
+    void showWaitingDlg();
+    void updateWaitingDlg();
+    void hideWaitingDlg();
     void updateCuveList();
     void updateCurveChart();
+
+protected:
+    virtual void resizeEvent(QResizeEvent *event);
 
 private:
     XCurMgr m_curMgr;//曲线管理器
@@ -30,6 +38,8 @@ private:
     QChart *m_chart;
     QListView *m_listView_curve;
     QStringListModel *m_model_curve;
+    QMovie *m_pMovieWaiting;
+    QLabel *m_pLabelWaiting;
 };
 
 #endif // MAINWINDOW_H
