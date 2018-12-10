@@ -5,12 +5,15 @@
 #include <QMainWindow>
 
 #include <QChart>
+#include <QChartView>
 #include <QListView>
 #include <QStringListModel>
 #include <QMovie>
 #include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
+#include <QMap>
+#include <QLineSeries>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -24,6 +27,8 @@ public:
 
     void initUI();
 
+    void addCurveToChart(const QString &sTypeName);
+
 public Q_SLOTS:
     void selectFileCur();
     void openFileCur();
@@ -31,7 +36,7 @@ public Q_SLOTS:
     void updateWaitingDlg();
     void hideWaitingDlg();
     void updateCuveList();
-    void selectCurve();
+    void addCurve();
     void removeCurve();
     void clearCurve();
     void fileCurChanged(const QString &);
@@ -52,6 +57,7 @@ private:
     QStringListModel *m_model_curve_selected;//已选的曲线列表模型
     QPushButton *m_pushButton_ClearCurve;
     QChart *m_chart;//图表
+    QChartView *m_chartView;
 
     QMovie *m_pMovieWaiting;
     QLabel *m_pLabelWaiting;

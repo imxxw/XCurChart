@@ -1,6 +1,4 @@
 #include "MainWindow.h"
-#include <QSplineSeries>
-#include <QChartView>
 #include <QSplitter>
 #include <QTimer>
 #include <QDebug>
@@ -27,6 +25,9 @@ MainWindow::MainWindow(QString fileCur, QWidget *parent)
         m_sFileCur = fileCur;
         sTitle += "-";
         sTitle += m_sFileCur;
+        if(m_comboBox_fileCurve->findText(m_sFileCur) < 0)
+            m_comboBox_fileCurve->addItem(m_sFileCur);//新的曲线文件
+        m_comboBox_fileCurve->setCurrentText(m_sFileCur);
         openFileCur();//打开cur文件
     }
     setWindowTitle(sTitle);
@@ -81,7 +82,7 @@ void MainWindow::initUI()
                                    "QListView::item{border:none; height: 22px;}"
                                    "QListView::item:selected{background: rgba(0, 120, 215,200);}"
                                    "QListView::item::hover {background: rgba(0, 120, 215,100);}");
-    connect(m_listView_curve, &QListView::doubleClicked, this, &MainWindow::selectCurve);
+    connect(m_listView_curve, &QListView::doubleClicked, this, &MainWindow::addCurve);
     m_model_curve = new QStringListModel(this);
     m_listView_curve->setModel(m_model_curve);
     vBoxLayoutCurve->addWidget(m_listView_curve);
@@ -126,8 +127,8 @@ void MainWindow::initUI()
 //    m_chart->axisX()->setTitleVisible(true);
 //    m_chart->axisX()->setTitleText("时间(s)");
 //    m_chart->axisY()->setRange(0, 10);
-    QChartView *chartView = new QChartView(m_chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
+    m_chartView = new QChartView(m_chart);
+    m_chartView->setRenderHint(QPainter::Antialiasing);
 
     vBoxLayoutLeft->setStretch(1,4);
     vBoxLayoutLeft->setStretch(2,1);
@@ -135,7 +136,7 @@ void MainWindow::initUI()
     QSplitter *splitter = new QSplitter;
     splitter->setOrientation(Qt::Horizontal);
     splitter->addWidget(widgetLeft);
-    splitter->addWidget(chartView);
+    splitter->addWidget(m_chartView);
     splitter->setStyleSheet("QSplitter:handle{background-color:white;}");
 
     setCentralWidget(splitter);
@@ -168,8 +169,8 @@ void MainWindow::selectFileCur()
     {
         m_sFileCur = sFileNew;
         if(m_comboBox_fileCurve->findText(m_sFileCur) < 0)
-            m_comboBox_fileCurve->addItem(sFileNew);//新的曲线文件
-        m_comboBox_fileCurve->setCurrentText(sFileNew);
+            m_comboBox_fileCurve->addItem(m_sFileCur);//新的曲线文件
+        m_comboBox_fileCurve->setCurrentText(m_sFileCur);
         openFileCur();
     }
 }
@@ -220,7 +221,33 @@ void MainWindow::updateCuveList()
     qDebug() << "更新曲线列表，完成。";
 }
 
-void MainWindow::selectCurve()
+void MainWindow::addCurveToChart(const QString &sTypeName)
+{
+    XCurve *pCurve = Q_NULLPTR;
+    if(m_curMgr.m_curvesMap.contains(sTypeName))
+        pCurve = m_curMgr.m_curvesMap.value(sTypeName);
+    if(pCurve)
+    {
+        //添加到图中
+//        QSplineSeries *series = new QSplineSeries();//平滑曲线（数据量大，达到1000以上时，速度很慢）
+        QLineSeries *series = new QLineSeries();//折线(速度快)
+        series->setName(sTypeName);
+        QList<QPointF> points = pCurve->m_data;
+        if(m_curMgr.m_isBpaOut)//bpa,横轴是周波，要转换成时间，需要除以50
+        {
+            for(int k = 0; k < points.count(); ++k)
+            {
+                points[k].setX(points[k].x()/50);//横轴单位从转换成时间
+            }
+        }
+//        series->append(points);
+        series->replace(points);
+        series->setUseOpenGL(true);//采用OpenGL来加速绘图，只支持QLineSeries and QScatterSeries
+        m_chart->addSeries(series);
+    }
+}
+
+void MainWindow::addCurve()
 {
     if(m_model_curve_selected->stringList().count() >= 5)
     {
@@ -237,37 +264,20 @@ void MainWindow::selectCurve()
     if(sTypeName.isEmpty())
         return;
 
-    XCurve *pCurve = Q_NULLPTR;
-    if(m_curMgr.m_curvesMap.contains(sTypeName))
-        pCurve = m_curMgr.m_curvesMap.value(sTypeName);
-    if(pCurve)
-    {
-        //更新可选曲线列表
-        QStringList curves = m_model_curve->stringList();
-        curves.removeAt(iRow);
-        m_model_curve->setStringList(curves);
+    //更新可选曲线列表
+    QStringList curves = m_model_curve->stringList();
+//    curves.removeAll(sTypeName);
+    curves.removeAt(iRow);
+    m_model_curve->setStringList(curves);
 
-        //更新已选曲线列表
-        QStringList curvesSelected = m_model_curve_selected->stringList();
-        curvesSelected.append(sTypeName);
-        m_model_curve_selected->setStringList(curvesSelected);
+    //更新已选曲线列表
+    QStringList curvesSelected = m_model_curve_selected->stringList();
+    curvesSelected.append(sTypeName);
+    m_model_curve_selected->setStringList(curvesSelected);
 
-        //添加到图中
-        QSplineSeries *series = new QSplineSeries();
-        series->setName(sTypeName);
-        QList<QPointF> points = pCurve->m_data;
-        if(m_curMgr.m_isBpaOut)//bpa,横轴是周波，要转换成时间，需要除以50
-        {
-            for(int k = 0; k < points.count(); ++k)
-            {
-                points[k].setX(points[k].x()/50);//横轴单位从转换成时间
-            }
-        }
-        series->append(points);
-        m_chart->addSeries(series);
-        //添加完addSeries之后才能继续下面的
-        m_chart->createDefaultAxes();//创建默认坐标轴
-    }
+    addCurveToChart(sTypeName);
+    //添加完addSeries之后才能继续下面的
+    m_chart->createDefaultAxes();//创建默认坐标轴
 
     m_pushButton_ClearCurve->setEnabled(m_model_curve_selected->stringList().count() > 0);
 }
@@ -290,18 +300,24 @@ void MainWindow::removeCurve()
 
     //更新已选曲线列表
     QStringList curvesSelected = m_model_curve_selected->stringList();
+//    curvesSelected.removeAll(sTypeName);
     curvesSelected.removeAt(iRow);
     m_model_curve_selected->setStringList(curvesSelected);
 
-    //找到对应的曲线并删除
-    int nSeries = m_chart->series().count();
-    for(int i = 0; i < nSeries; ++i)
+    //方法1 直接删除某条曲线，但是实际上，在图中并没有立即删除该曲线，而是要手动调整界面才会删除
+//    QAbstractSeries *pSer = m_chart->series().at(iRow);
+//    m_chart->removeSeries(m_chart->series().at(iRow));
+//    if(pSer)
+//    {
+//        delete pSer;
+//        pSer = Q_NULLPTR;
+//    }
+
+    //方法2 先删除所有的曲线，然后重新添加剩下的曲线，解决了方法1的问题
+    m_chart->removeAllSeries();
+    foreach (QString sName, m_model_curve_selected->stringList())
     {
-        if(m_chart->series().at(i)->name() == sTypeName)
-        {
-            m_chart->removeSeries(m_chart->series().at(i));
-            break;
-        }
+        addCurveToChart(sName);
     }
     m_chart->createDefaultAxes();//创建默认坐标轴
     m_pushButton_ClearCurve->setEnabled(m_model_curve_selected->stringList().count() > 0);
