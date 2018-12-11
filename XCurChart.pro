@@ -6,7 +6,7 @@
 
 QT       += core gui charts
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets  printsupport
 
 TARGET = XCurChart
 TEMPLATE = app
@@ -30,14 +30,22 @@ SOURCES += \
         MainWindow.cpp \
 #    XxwCppPub/Curve.cpp \
 #    XxwCppPub/XxwCppPub.cpp \
-    XCurMgr.cpp
+    XCurMgr.cpp \
+    qcustomplot.cpp \
+    XxwCustomPlot.cpp \
+    XxwTracer.cpp \
+    MainWindow2.cpp
 
 HEADERS += \
         MainWindow.h \
 #    XxwCppPub/Curve.h \
 #    XxwCppPub/XxwCppPub.h \
     XCurMgr.h \
-    Res/version.rc
+    Res/version.rc \
+    qcustomplot.h \
+    XxwCustomPlot.h \
+    XxwTracer.h \
+    MainWindow2.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

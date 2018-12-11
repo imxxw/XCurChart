@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+#include "MainWindow2.h"
 #include <QApplication>
 #include <QStringList>
 #include <QFileInfo>
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
         sFileCur = "";
     }
 
-    MainWindow w(sFileCur);
+    MainWindow2 w(sFileCur);
     w.show();
 
     return a.exec();
