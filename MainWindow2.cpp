@@ -12,7 +12,7 @@ MainWindow2::MainWindow2(QString fileCur, QWidget *parent)
     : QMainWindow(parent)
 {
     initUI();
-//    resize(1000,750);
+    //    resize(1000,750);
     showMaximized();
 
     connect(&m_curMgr, &XCurMgr::signal_DataReady, this, &MainWindow2::updateCuveList);
@@ -43,7 +43,7 @@ void MainWindow2::initUI()
     widgetLeft->setMinimumWidth(200);
     widgetLeft->setMaximumWidth(500);
     QVBoxLayout *vBoxLayoutLeft = new QVBoxLayout(widgetLeft);
-//    widgetLeft->setLayout(vBoxLayoutLeft);
+    //    widgetLeft->setLayout(vBoxLayoutLeft);
     vBoxLayoutLeft->setMargin(2);
     vBoxLayoutLeft->setSpacing(5);
 
@@ -73,15 +73,15 @@ void MainWindow2::initUI()
     QLabel *labelCurveList = new QLabel("可选曲线(双击选择曲线，并添加右侧图中，最多可选6条曲线)");
     vBoxLayoutCurve->addWidget(labelCurveList);
     m_listView_curve = new QListView;
-//    m_listView_curve->setSelectionMode(QAbstractItemView::MultiSelection);
+    //    m_listView_curve->setSelectionMode(QAbstractItemView::MultiSelection);
     m_listView_curve->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
     m_listView_curve->setSpacing(0);
     m_listView_curve->setMinimumWidth(150);
-//    m_listView_curve->setMaximumWidth(450);
+    //    m_listView_curve->setMaximumWidth(450);
     m_listView_curve->setStyleSheet("QListView {background-color:white;}"
-                                   "QListView::item{border:none; height: 22px;}"
-                                   "QListView::item:selected{background: rgba(0, 120, 215,200);}"
-                                   "QListView::item::hover {background: rgba(0, 120, 215,100);}");
+                                    "QListView::item{border:none; height: 22px;}"
+                                    "QListView::item:selected{background: rgba(0, 120, 215,200);}"
+                                    "QListView::item::hover {background: rgba(0, 120, 215,100);}");
     connect(m_listView_curve, &QListView::doubleClicked, this, &MainWindow2::addCurve);
     m_model_curve = new QStringListModel(this);
     m_listView_curve->setModel(m_model_curve);
@@ -104,55 +104,22 @@ void MainWindow2::initUI()
     hBoxLayout1->addWidget(m_pushButton_ClearCurve);
     vBoxLayoutCurveSelected->addLayout(hBoxLayout1);
     m_listView_curve_selected = new QListView;
-//    m_listView_curve_selected->setSelectionMode(QAbstractItemView::MultiSelection);
+    //    m_listView_curve_selected->setSelectionMode(QAbstractItemView::MultiSelection);
     m_listView_curve_selected->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
     m_listView_curve_selected->setSpacing(0);
-//    m_listView_curve_selected->setMaximumHeight(100);
-//    m_listView_curve_selected->setMaximumHeight(200);
+    //    m_listView_curve_selected->setMaximumHeight(100);
+    //    m_listView_curve_selected->setMaximumHeight(200);
     m_listView_curve_selected->setStyleSheet("QListView {background-color:white;}"
-                                   "QListView::item{border:none; height: 22px;}"
-                                   "QListView::item:selected{background: rgba(0, 120, 215,200);}"
-                                   "QListView::item::hover {background: rgba(0, 120, 215,100);}");
+                                             "QListView::item{border:none; height: 22px;}"
+                                             "QListView::item:selected{background: rgba(0, 120, 215,200);}"
+                                             "QListView::item::hover {background: rgba(0, 120, 215,100);}");
     connect(m_listView_curve_selected, &QListView::doubleClicked, this, &MainWindow2::removeCurve);
     m_model_curve_selected = new QStringListModel(this);
     m_listView_curve_selected->setModel(m_model_curve_selected);
     vBoxLayoutCurveSelected->addWidget(m_listView_curve_selected,1);
     vBoxLayoutLeft->addLayout(vBoxLayoutCurveSelected);
 
-    m_plot = new XxwCustomPlot();
-    m_plot->showTracer(true);//显示追踪器
-
-    // add title layout element:
-    m_plot->plotLayout()->insertRow(0);
-    m_plot->plotLayout()->addElement(0, 0, new QCPTextElement(m_plot, "曲线图", QFont("黑体", 10, QFont::Bold)));
-
-    //show legend
-    m_plot->legend->setVisible(true);
-    QFont legendFont = font();  // start out with MainWindow's font..
-    legendFont.setPointSize(9); // and make a bit smaller for legend
-    m_plot->legend->setFont(legendFont);
-    m_plot->legend->setBrush(QBrush(QColor(255,255,255,230)));
-    // by default, the legend is in the inset layout of the main axis rect.
-    // So this is how we access it to change legend placement:
-    m_plot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignTop|Qt::AlignRight);
-
-    // make left and bottom axes always transfer their ranges to right and top axes:
-    connect(m_plot->xAxis, SIGNAL(rangeChanged(QCPRange)), m_plot->xAxis2, SLOT(setRange(QCPRange)));
-    connect(m_plot->yAxis, SIGNAL(rangeChanged(QCPRange)), m_plot->yAxis2, SLOT(setRange(QCPRange)));
-
-    // Allow user to drag axis ranges with mouse, zoom with mouse wheel and select graphs by clicking:
-    /*
- enum Interaction { iRangeDrag         = 0x001 ///< <tt>0x001</tt> Axis ranges are draggable (see \ref QCPAxisRect::setRangeDrag, \ref QCPAxisRect::setRangeDragAxes)
-                   ,iRangeZoom        = 0x002 ///< <tt>0x002</tt> Axis ranges are zoomable with the mouse wheel (see \ref QCPAxisRect::setRangeZoom, \ref QCPAxisRect::setRangeZoomAxes)
-                   ,iMultiSelect      = 0x004 ///< <tt>0x004</tt> The user can select multiple objects by holding the modifier set by \ref QCustomPlot::setMultiSelectModifier while clicking
-                   ,iSelectPlottables = 0x008 ///< <tt>0x008</tt> Plottables are selectable (e.g. graphs, curves, bars,... see QCPAbstractPlottable)
-                   ,iSelectAxes       = 0x010 ///< <tt>0x010</tt> Axes are selectable (or parts of them, see QCPAxis::setSelectableParts)
-                   ,iSelectLegend     = 0x020 ///< <tt>0x020</tt> Legends are selectable (or their child items, see QCPLegend::setSelectableParts)
-                   ,iSelectItems      = 0x040 ///< <tt>0x040</tt> Items are selectable (Rectangles, Arrows, Textitems, etc. see \ref QCPAbstractItem)
-                   ,iSelectOther      = 0x080 ///< <tt>0x080</tt> All other objects are selectable (e.g. your own derived layerables, other layout elements,...)
-                 };
-     */
-    m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectLegend | QCP::iSelectAxes);
+    initPlot();
 
     vBoxLayoutLeft->setStretch(1,4);
     vBoxLayoutLeft->setStretch(2,1);
@@ -179,6 +146,20 @@ void MainWindow2::initUI()
     m_pLabelWaiting->setMovie(m_pMovieWaiting);
     m_pMovieWaiting->start();
     m_pLabelWaiting->hide();
+
+    statusBar()->setVisible(true);
+}
+
+
+void MainWindow2::initPlot()
+{
+    m_plot = new XxwCustomPlot();
+    m_plot->showTracer(true);//显示追踪器
+    m_plot->xAxis->setLabel("时间(s)");
+    m_plot->yAxis->setLabel("值");
+
+    // connect slot that shows a message in the status bar when a graph is clicked:
+    connect(m_plot, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*,int)));
 }
 
 
@@ -271,9 +252,10 @@ void MainWindow2::addCurveToChart(const QString &sTypeName)
         pGraph->setData(xData, yData);
         pGraph->setName(sTypeName);
         QPen pen = pGraph->pen();
-//        int iFactor = m_plot->graphCount() - 1;
-//        QColor clr = QColor(qSin(iFactor * 1 + 1.2) * 80 + 80, qSin(iFactor*0.3 + 0) * 80 + 80, qSin(iFactor*0.3 + 1.5) * 80 + 80);
-        QColor clr = QColor(qrand() % 100 + 50, qrand() % 100 + 50, qrand() % 100 + 50);
+        //        int iFactor = m_plot->graphCount() - 1;
+        //        QColor clr = QColor(qSin(iFactor * 1 + 1.2) * 80 + 80, qSin(iFactor*0.3 + 0) * 80 + 80, qSin(iFactor*0.3 + 1.5) * 80 + 80);
+        //        QColor clr = QColor(qrand() % 100 + 50, qrand() % 100 + 50, qrand() % 100 + 50);
+        QColor clr = getRandomColor();
         pen.setColor(clr);
         pGraph->setPen(pen);
         m_plot->rescaleAxes();
@@ -300,7 +282,7 @@ void MainWindow2::addCurve()
 
     //更新可选曲线列表
     QStringList curves = m_model_curve->stringList();
-//    curves.removeAll(sTypeName);
+    //    curves.removeAll(sTypeName);
     curves.removeAt(iRow);
     m_model_curve->setStringList(curves);
 
@@ -335,7 +317,7 @@ void MainWindow2::removeCurve()
 
     //更新已选曲线列表
     QStringList curvesSelected = m_model_curve_selected->stringList();
-//    curvesSelected.removeAll(sTypeName);
+    //    curvesSelected.removeAll(sTypeName);
     curvesSelected.removeAt(iRow);
     m_model_curve_selected->setStringList(curvesSelected);
 
@@ -384,4 +366,30 @@ void MainWindow2::fileCurChanged(const QString &file)
 void MainWindow2::resizeEvent(QResizeEvent *event)
 {
     updateWaitingDlg();
+}
+
+// 生成一个随机颜色，为了在白色背景上显示，尽量生成深色
+QColor MainWindow2::getRandomColor()
+{
+    //方法1 使用rgb随机生成深色
+    //    qsrand(QDateTime::currentMSecsSinceEpoch());
+    //    int int_Red = qrand() % 256;
+    //    qsrand(QDateTime::currentMSecsSinceEpoch());
+    //    int int_Green = qrand() % 256;
+    //    int int_Blue = (int_Red + int_Green > 400) ? 0 : 400 - int_Red - int_Green;
+    //    int_Blue = (int_Blue > 255) ? 255 : int_Blue;
+    //    return QColor(int_Red,int_Green,int_Blue);
+
+    //方法2 使用hsl随机生成深色
+    //HSL空间里如果L分量大于200，颜色看起来就比较淡了，所以我们可以随机生成小于200的数值作为L分量
+    return QColor::fromHsl(rand()%360,rand()%256,rand()%200);
+}
+
+void MainWindow2::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
+{
+    // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
+    // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
+    double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
+    QString message = QString("单击图形：'%1'， 当前点：#%2，对应值:%3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
+    statusBar()->showMessage(message, 2500);
 }

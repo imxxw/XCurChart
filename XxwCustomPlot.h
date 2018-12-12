@@ -13,6 +13,7 @@ class XxwCustomPlot:public QCustomPlot
 public:
     XxwCustomPlot(QWidget *parent = 0);
 
+    void initPlot();
 protected:
     virtual void mouseMoveEvent(QMouseEvent *event);
 
@@ -34,8 +35,8 @@ public:
             if(tracer)
                 tracer->setVisible(m_isShowTracer);
         }
-        if(m_lineTracer)
-            m_lineTracer->setVisible(m_isShowTracer);
+//        if(m_lineTracer)
+//            m_lineTracer->setVisible(m_isShowTracer);
     }
 
     ///
@@ -44,12 +45,40 @@ public:
     ///
     bool isShowTracer(){return m_isShowTracer;};
 
+public slots:
+    void selectionChanged();
+    void mousePress();
+    void mouseWheel();
+    void titleDoubleClick(QMouseEvent *event);
+
+    void axisLabelDoubleClick(QCPAxis* axis, QCPAxis::SelectablePart part);
+    void legendDoubleClick(QCPLegend* legend, QCPAbstractLegendItem* item);
+
+//    void addRandomGraph();
+    void removeSelectedGraph();
+    void removeAllGraphs();
+    void contextMenuRequest(QPoint pos);
+    void moveLegend();
+
+    //查看图形数据
+    void viewGrpahData();
+
+    //导出图形
+    void outputPlot();
+
+    //跟随鼠标显示曲线上的值
+    void showValueAtMousePoint();
+
+signals:
+    void signal_removeSelectedGraph(QString);
+    void signal_removeAllGraphs();
+
 private:
     bool m_isShowTracer;//是否显示追踪器（鼠标在图中移动，显示对应的值）
 //    XxwTracer *m_xTracer;//x轴
 //    XxwTracer *m_yTracer;//y轴
     QList<XxwTracer *> m_dataTracers;//
-    XxwTraceLine  *m_lineTracer;//直线
+//    XxwTraceLine  *m_lineTracer;//直线
 };
 
 #endif // XCUSTOMPLOT_H

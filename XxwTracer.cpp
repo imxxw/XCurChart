@@ -176,7 +176,7 @@ void XxwTracer::updatePosition(double xValue, double yValue)
     {
         m_tracer->position->setCoords(xValue, yValue);
         m_label->position->setCoords(20, 0);
-        setText(QString("x:%1,y:%2").arg(xValue).arg(yValue));
+        setText(QString("%1, %2").arg(xValue).arg(yValue));
         break;
     }
     default:

@@ -26,8 +26,12 @@ public:
     ~MainWindow2();
 
     void initUI();
+    void initPlot();
 
     void addCurveToChart(const QString &sTypeName);
+
+    // 生成一个随机颜色，为了在白色背景上显示，尽量生成深色
+    QColor getRandomColor();
 
 public Q_SLOTS:
     void selectFileCur();
@@ -40,6 +44,8 @@ public Q_SLOTS:
     void removeCurve();
     void clearCurve();
     void fileCurChanged(const QString &);
+
+    void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
 
 protected:
     virtual void resizeEvent(QResizeEvent *event);
