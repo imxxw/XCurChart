@@ -4,8 +4,6 @@
 #include "XCurMgr.h"
 #include "XxwCustomPlot.h"
 #include <QMainWindow>
-#include <QChart>
-#include <QChartView>
 #include <QListView>
 #include <QStringListModel>
 #include <QMovie>
@@ -13,9 +11,6 @@
 #include <QPushButton>
 #include <QComboBox>
 #include <QMap>
-#include <QLineSeries>
-
-QT_CHARTS_USE_NAMESPACE
 
 class MainWindow2 : public QMainWindow
 {
@@ -74,8 +69,9 @@ private:
 
     QPushButton *m_buttonRemoveSelectedCurve;
     QPushButton *m_buttonRemoveAllCurves;
-    QPushButton *m_buttonViewCurvesData;
-    QPushButton *m_buttonOutput;
+    QPushButton *m_buttonViewCurveData;
+    QPushButton *m_buttonOutputCurveData;
+    QPushButton *m_buttonOutputPicture;
 
     QListView *m_listView_curve;//可选的曲线列表
     QStringList m_allTypeName;//所有的曲线类型和名称列表

@@ -35,8 +35,8 @@ public:
             if(tracer)
                 tracer->setVisible(m_isShowTracer);
         }
-//        if(m_lineTracer)
-//            m_lineTracer->setVisible(m_isShowTracer);
+        if(m_lineTracer)
+            m_lineTracer->setVisible(m_isShowTracer);
     }
 
     ///
@@ -44,6 +44,10 @@ public:
     /// \return
     ///
     bool isShowTracer(){return m_isShowTracer;};
+
+    void saveTxt(const QString &fileName);
+
+    void saveCsv(const QString &fileName);
 
 public slots:
     void selectionChanged();
@@ -60,8 +64,14 @@ public slots:
     void contextMenuRequest(QPoint pos);
     void moveLegend();
 
+    //自动调整坐标轴，以显示所有图形
+    void autoScaleAxises();
+
     //查看图形数据
     void viewGrpahData();
+    
+    //导出图形数据
+    void outputGraphData();
 
     //导出图形
     void outputPlot();
@@ -78,7 +88,7 @@ private:
 //    XxwTracer *m_xTracer;//x轴
 //    XxwTracer *m_yTracer;//y轴
     QList<XxwTracer *> m_dataTracers;//
-//    XxwTraceLine  *m_lineTracer;//直线
+    XxwTraceLine  *m_lineTracer;//直线
 };
 
 #endif // XCUSTOMPLOT_H

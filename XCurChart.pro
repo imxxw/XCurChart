@@ -34,7 +34,9 @@ SOURCES += \
     qcustomplot.cpp \
     XxwCustomPlot.cpp \
     XxwTracer.cpp \
-    MainWindow2.cpp
+    MainWindow2.cpp \
+    CurveDataDlg.cpp \
+    CurveDataTableModel.cpp
 
 HEADERS += \
         MainWindow.h \
@@ -45,7 +47,9 @@ HEADERS += \
     qcustomplot.h \
     XxwCustomPlot.h \
     XxwTracer.h \
-    MainWindow2.h
+    MainWindow2.h \
+    CurveDataDlg.h \
+    CurveDataTableModel.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -136,24 +136,30 @@ void MainWindow2::initUI()
     m_buttonRemoveAllCurves->setMinimumWidth(100);
     m_buttonRemoveAllCurves->setMaximumWidth(150);
     m_buttonRemoveAllCurves->setEnabled(false);
-    m_buttonViewCurvesData = new QPushButton("查看曲线数据");
-    m_buttonViewCurvesData->setMinimumWidth(100);
-    m_buttonViewCurvesData->setMaximumWidth(150);
-    m_buttonViewCurvesData->setEnabled(false);
-    m_buttonOutput = new QPushButton("导出图形");
-    m_buttonOutput->setMinimumWidth(100);
-    m_buttonOutput->setMaximumWidth(150);
+    m_buttonViewCurveData = new QPushButton("查看曲线数据");
+    m_buttonViewCurveData->setMinimumWidth(100);
+    m_buttonViewCurveData->setMaximumWidth(150);
+    m_buttonViewCurveData->setEnabled(false);
+    m_buttonOutputCurveData = new QPushButton("导出曲线数据");
+    m_buttonOutputCurveData->setMinimumWidth(100);
+    m_buttonOutputCurveData->setMaximumWidth(150);
+    m_buttonOutputCurveData->setEnabled(false);
+    m_buttonOutputPicture = new QPushButton("导出图形");
+    m_buttonOutputPicture->setMinimumWidth(100);
+    m_buttonOutputPicture->setMaximumWidth(150);
     connect(m_buttonRemoveSelectedCurve, &QPushButton::clicked, m_plot, &XxwCustomPlot::removeSelectedGraph);
     connect(m_buttonRemoveAllCurves, &QPushButton::clicked, m_plot, &XxwCustomPlot::removeAllGraphs);
-    connect(m_buttonViewCurvesData, &QPushButton::clicked, m_plot, &XxwCustomPlot::viewGrpahData);
-    connect(m_buttonOutput, &QPushButton::clicked, m_plot, &XxwCustomPlot::outputPlot);
+    connect(m_buttonViewCurveData, &QPushButton::clicked, m_plot, &XxwCustomPlot::viewGrpahData);
+    connect(m_buttonOutputCurveData, &QPushButton::clicked, m_plot, &XxwCustomPlot::outputGraphData);
+    connect(m_buttonOutputPicture, &QPushButton::clicked, m_plot, &XxwCustomPlot::outputPlot);
     QHBoxLayout *hLayoutPlotFunction = new QHBoxLayout();
     hLayoutPlotFunction->setMargin(1);
     hLayoutPlotFunction->setSpacing(1);
     hLayoutPlotFunction->addWidget(m_buttonRemoveSelectedCurve);
     hLayoutPlotFunction->addWidget(m_buttonRemoveAllCurves);
-    hLayoutPlotFunction->addWidget(m_buttonViewCurvesData);
-    hLayoutPlotFunction->addWidget(m_buttonOutput);
+    hLayoutPlotFunction->addWidget(m_buttonViewCurveData);
+    hLayoutPlotFunction->addWidget(m_buttonOutputCurveData);
+    hLayoutPlotFunction->addWidget(m_buttonOutputPicture);
 //    QSpacerItem *spacer = new QSpacerItem;
 //    hLayoutPlotFunction->addWidget(spacer);
 
@@ -164,7 +170,7 @@ void MainWindow2::initUI()
     splitter->setOrientation(Qt::Horizontal);
     splitter->addWidget(widgetLeft);
     splitter->addWidget(widgetRight);
-    splitter->setStyleSheet("QSplitter:handle{background-color:gray;}");
+    splitter->setStyleSheet("QSplitter:handle{background-color:lightgray;}");
 
     setCentralWidget(splitter);
 
@@ -368,7 +374,8 @@ void MainWindow2::addCurve()
     m_selectedTypeName.append(sTypeName);
     addCurveToPlot(sTypeName);
     m_buttonRemoveAllCurves->setEnabled(m_plot && m_plot->graphCount() > 0);
-    m_buttonViewCurvesData->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonViewCurveData->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonOutputCurveData->setEnabled(m_plot && m_plot->graphCount() > 0);
 }
 
 
@@ -377,7 +384,8 @@ void MainWindow2::removeCurve(QString curveName)
     m_selectedTypeName.removeAll(curveName);
     m_buttonRemoveSelectedCurve->setEnabled(m_plot && m_plot->selectedGraphs().size() > 0);
     m_buttonRemoveAllCurves->setEnabled(m_plot && m_plot->graphCount() > 0);
-    m_buttonViewCurvesData->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonViewCurveData->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonOutputCurveData->setEnabled(m_plot && m_plot->graphCount() > 0);
 }
 
 void MainWindow2::removeAllCurves()
@@ -385,7 +393,8 @@ void MainWindow2::removeAllCurves()
     m_selectedTypeName.clear();
     m_buttonRemoveSelectedCurve->setEnabled(m_plot && m_plot->selectedGraphs().size() > 0);
     m_buttonRemoveAllCurves->setEnabled(m_plot && m_plot->graphCount() > 0);
-    m_buttonViewCurvesData->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonViewCurveData->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonOutputCurveData->setEnabled(m_plot && m_plot->graphCount() > 0);
 }
 
 void MainWindow2::changeFileCur(const QString &file)
@@ -423,9 +432,11 @@ void MainWindow2::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
 {
     // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
     // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
+    double dataKey = plottable->interface1D()->dataMainKey(dataIndex);
     double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
-    QString message = QString("单击图形：'%1'， 当前点：#%2，对应值:%3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
-    statusBar()->showMessage(message, 2500);
+    QString message = QString("选中图形：'%1'，当前点：(%2, %3)")
+            .arg(plottable->name()).arg(dataKey).arg(dataValue);
+    statusBar()->showMessage(message, 5000);
 }
 
 void MainWindow2::selectionChanged()

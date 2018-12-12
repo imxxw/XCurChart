@@ -1,4 +1,7 @@
 #include "XxwCustomPlot.h"
+#include "CurveDataDlg.h"
+#include <QFile>
+#include <QTextStream>
 
 XxwCustomPlot::XxwCustomPlot(QWidget *parent)
     :QCustomPlot(parent)
@@ -6,7 +9,7 @@ XxwCustomPlot::XxwCustomPlot(QWidget *parent)
 //    ,m_xTracer(Q_NULLPTR)
 //    ,m_yTracer(Q_NULLPTR)
     ,m_dataTracers(QList<XxwTracer *>())
-//    ,m_lineTracer(Q_NULLPTR)
+    ,m_lineTracer(Q_NULLPTR)
 {
     initPlot();
 }
@@ -85,16 +88,16 @@ void XxwCustomPlot::mouseMoveEvent(QMouseEvent *event)
     if(m_isShowTracer)
     {
         //当前鼠标位置（像素坐标）
-        int x_pos = event->pos().x();
+        int x_pos = event->pos().x() + 10;
         int y_pos = event->pos().y();
 
         //像素坐标转成实际的x,y轴的坐标
         float x_val = this->xAxis->pixelToCoord(x_pos);
         float y_val = this->yAxis->pixelToCoord(y_pos);
 
-//        if(Q_NULLPTR == m_lineTracer)
-//            m_lineTracer = new XxwTraceLine(this,XxwTraceLine::VerticalLine);//直线
-//        m_lineTracer->updatePosition(x_val, y_val);
+        if(Q_NULLPTR == m_lineTracer)
+            m_lineTracer = new XxwTraceLine(this,XxwTraceLine::VerticalLine);//直线
+        m_lineTracer->updatePosition(x_val, y_val);
 
 //        if(Q_NULLPTR == m_xTracer)
 //            m_xTracer = new XxwTracer(this, XxwTracer::XAxisTracer);//x轴
@@ -134,12 +137,13 @@ void XxwCustomPlot::mouseMoveEvent(QMouseEvent *event)
             tracer->setPen(this->graph(i)->pen());
             tracer->setBrush(Qt::NoBrush);
             tracer->setLabelPen(this->graph(i)->pen());
-            auto iter = this->graph(i)->data()->findBegin(x_val);
-            double value = iter->mainValue();
-//            double value = this->graph(i)->data()->findBegin(x_val)->value;
+//            auto iter = this->graph(i)->data()->findBegin(x_val);
+//            double value = iter->mainValue();
+            double value1 = this->graph(i)->data()->findBegin(x_val)->value;
+            double value2 = this->graph(i)->data()->findEnd(x_val)->value;
+            double value = (value1 + value2)/2.0f;
             tracer->updatePosition(x_val, value);
         }
-
         this->replot();//曲线重绘
     }
 }
@@ -335,15 +339,18 @@ void XxwCustomPlot::contextMenuRequest(QPoint pos)
             menu->addAction("移除选中的曲线", this, SLOT(removeSelectedGraph()));
         if (this->graphCount() > 0)
             menu->addAction("移除所有曲线", this, SLOT(removeAllGraphs()));
+        menu->addSeparator();
+        menu->addAction("自动调整坐标轴", this, SLOT(autoScaleAxises()));
         if (this->graphCount() > 0)
         {
             menu->addSeparator();
             menu->addAction("查看曲线数据", this, SLOT(viewGrpahData()));
+            menu->addAction("导出曲线数据", this, SLOT(outputGraphData()));
         }
         menu->addSeparator();
         menu->addAction("导出图形", this, SLOT(outputPlot()));
         menu->addSeparator();
-        QAction *action = menu->addAction("跟随鼠标显示曲线上的值", this, SLOT(showValueAtMousePoint()));
+        QAction *action = menu->addAction("跟随鼠标显示同一时刻各曲线上的值", this, SLOT(showValueAtMousePoint()));
         action->setCheckable(true);
         action->setChecked(m_isShowTracer);
     }
@@ -364,11 +371,107 @@ void XxwCustomPlot::moveLegend()
     }
 }
 
+//自动调整坐标轴，以显示所有图形
+void XxwCustomPlot::autoScaleAxises()
+{
+    this->rescaleAxes();
+    this->replot();
+}
+
 //查看图形数据
 void XxwCustomPlot::viewGrpahData()
+{    
+    CurveDataDlg dlg(this,this);//显示曲线数据的对话框
+    dlg.exec();
+}
+
+//导出图形数据
+void XxwCustomPlot::outputGraphData()
 {
-    QString sMsg = "开发中...";
-    QMessageBox::information(this, "提示", sMsg);
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    "保存曲线数据",
+                                                    qApp->applicationDirPath(),
+                                                    "excel文件(*.csv) ;; 文本文件( *.txt)");
+    if(fileName.isEmpty())
+        return;
+    QFileInfo fi(fileName);
+    QString sSuffix = fi.suffix().toLower();
+    if("csv" == sSuffix)
+        this->saveCsv(fileName);
+    else if("txt" == sSuffix)
+        this->saveTxt(fileName);
+}
+
+//保存为e格式的txt文件
+void XxwCustomPlot::saveTxt(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QTextStream out(&file);
+//    out.setCodec("UTF-8");
+//    out.setCodec("GB18030");
+    QString sEndLine = "\n";
+    QString sSplit = " ";
+//    out << "The magic number is: " << 49 << "\n";
+    int nCount = this->graphCount();
+    for(int i = 0; i < nCount; ++i)
+    {
+        QCPGraph *pGraph = this->graph(i);
+        if(!pGraph)
+            continue;
+        out << "<" << pGraph->name() << ">" << sEndLine;
+        out << "// "<< QString("序号") << sSplit << "x" << sSplit << "y" << sEndLine;
+        int nDataCount = pGraph->dataCount();
+        for(int j = 0; j < nDataCount; ++j)
+        {
+            out << "#" << sSplit;
+            out << j+1 << sSplit;
+            out << pGraph->data()->at(j)->mainKey();
+            out << sSplit;
+            out << pGraph->data()->at(j)->mainValue();
+            out << sEndLine;
+        }
+        out << "</" << pGraph->name() << ">" << sEndLine << sEndLine;
+    }
+    file.close();
+}
+
+//保存为csv格式文本文件
+void XxwCustomPlot::saveCsv(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
+    QTextStream out(&file);
+//    out.setCodec("UTF-8");
+//    out.setCodec("GB18030");
+    QString sEndLine = "\n";
+    QString sSplit = ",";
+//    out << "The magic number is: " << 49 << "\n";
+    int nCount = this->graphCount();
+    for(int i = 0; i < nCount; ++i)
+    {
+        QCPGraph *pGraph = this->graph(i);
+        if(!pGraph)
+            continue;
+        out << "<" << pGraph->name() << ">" << sEndLine;
+        out << QString("序号") << sSplit << "x" << sSplit << "y" << sEndLine;
+        int nDataCount = pGraph->dataCount();
+        for(int j = 0; j < nDataCount; ++j)
+        {
+            out << j+1;
+            out << sSplit;
+            out << pGraph->data()->at(j)->mainKey();
+            out << sSplit;
+            out << pGraph->data()->at(j)->mainValue();
+            out << sEndLine;
+        }
+        out << "</" << pGraph->name() << ">" << sEndLine << sEndLine;
+    }
+    file.close();
 }
 
 //导出图形
@@ -382,11 +485,11 @@ void XxwCustomPlot::outputPlot()
     QString sSuffix = fi.suffix().toLower();
     if("png" == sSuffix)
         this->savePng(fileName);
-    if("jpg" == sSuffix)
+    else if("jpg" == sSuffix)
         this->saveJpg(fileName);
-    if("bmp" == sSuffix)
+    else if("bmp" == sSuffix)
         this->saveBmp(fileName);
-    if("pdf" == sSuffix)
+    else if("pdf" == sSuffix)
         this->savePdf(fileName);
 }
 
