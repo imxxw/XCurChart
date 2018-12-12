@@ -220,7 +220,7 @@ void XxwCustomPlot::titleDoubleClick(QMouseEvent* event)
     {
         // Set the plot title by double clicking on it
         bool ok;
-        QString newTitle = QInputDialog::getText(this, "QCustomPlot example", "New plot title:", QLineEdit::Normal, title->text(), &ok);
+        QString newTitle = QInputDialog::getText(this, "修改标题", "新标题:", QLineEdit::Normal, title->text(), &ok);
         if (ok)
         {
             title->setText(newTitle);
@@ -236,7 +236,7 @@ void XxwCustomPlot::axisLabelDoubleClick(QCPAxis *axis, QCPAxis::SelectablePart 
     if (part == QCPAxis::spAxisLabel) // only react when the actual axis label is clicked, not tick label or axis backbone
     {
         bool ok;
-        QString newLabel = QInputDialog::getText(this, "QCustomPlot example", "New axis label:", QLineEdit::Normal, axis->label(), &ok);
+        QString newLabel = QInputDialog::getText(this, "修改坐标轴标签", "新标签:", QLineEdit::Normal, axis->label(), &ok);
         if (ok)
         {
             axis->setLabel(newLabel);
@@ -254,7 +254,7 @@ void XxwCustomPlot::legendDoubleClick(QCPLegend *legend, QCPAbstractLegendItem *
     {
         QCPPlottableLegendItem *plItem = qobject_cast<QCPPlottableLegendItem*>(item);
         bool ok;
-        QString newName = QInputDialog::getText(this, "QCustomPlot example", "New graph name:", QLineEdit::Normal, plItem->plottable()->name(), &ok);
+        QString newName = QInputDialog::getText(this, "修改图形名称", "新名称:", QLineEdit::Normal, plItem->plottable()->name(), &ok);
         if (ok)
         {
             plItem->plottable()->setName(newName);
@@ -332,11 +332,14 @@ void XxwCustomPlot::contextMenuRequest(QPoint pos)
     {
 //        menu->addAction("Add random graph", this, SLOT(addRandomGraph()));
         if (this->selectedGraphs().size() > 0)
-            menu->addAction("删除选择的图形", this, SLOT(removeSelectedGraph()));
+            menu->addAction("移除选中的曲线", this, SLOT(removeSelectedGraph()));
         if (this->graphCount() > 0)
-            menu->addAction("删除所有图形", this, SLOT(removeAllGraphs()));
-        menu->addSeparator();
-        menu->addAction("查看数据", this, SLOT(viewGrpahData()));
+            menu->addAction("移除所有曲线", this, SLOT(removeAllGraphs()));
+        if (this->graphCount() > 0)
+        {
+            menu->addSeparator();
+            menu->addAction("查看曲线数据", this, SLOT(viewGrpahData()));
+        }
         menu->addSeparator();
         menu->addAction("导出图形", this, SLOT(outputPlot()));
         menu->addSeparator();

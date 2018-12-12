@@ -15,7 +15,7 @@ MainWindow2::MainWindow2(QString fileCur, QWidget *parent)
     //    resize(1000,750);
     showMaximized();
 
-    connect(&m_curMgr, &XCurMgr::signal_DataReady, this, &MainWindow2::updateCuveList);
+    connect(&m_curMgr, &XCurMgr::signal_DataReady, this, &MainWindow2::updateCurveList);
 
     QString sTitle = "PSD-BPA稳定计算结果文件(*.cur)绘图工具";
     m_sFileCur = "";
@@ -42,6 +42,7 @@ void MainWindow2::initUI()
     QWidget *widgetLeft = new QWidget;
     widgetLeft->setMinimumWidth(200);
     widgetLeft->setMaximumWidth(500);
+
     QVBoxLayout *vBoxLayoutLeft = new QVBoxLayout(widgetLeft);
     //    widgetLeft->setLayout(vBoxLayoutLeft);
     vBoxLayoutLeft->setMargin(2);
@@ -54,24 +55,51 @@ void MainWindow2::initUI()
     if(QFile::exists(m_sFileCur))
         m_comboBox_fileCurve->addItem(m_sFileCur);
     connect(m_comboBox_fileCurve, SIGNAL(currentIndexChanged(const QString &)),
-            this, SLOT(fileCurChanged(const QString &)));
+            this, SLOT(changeFileCur(const QString &)));
     m_pushButton_selectFile = new QPushButton("选择");//选择曲线按钮
     m_pushButton_selectFile->setMinimumWidth(50);
     m_pushButton_selectFile->setMaximumWidth(50);
     connect(m_pushButton_selectFile, &QPushButton::clicked, this, &MainWindow2::selectFileCur);
-    QHBoxLayout *layoutFileCurve = new QHBoxLayout();
-    layoutFileCurve->addWidget(labelFileCurve);
-    layoutFileCurve->addWidget(m_comboBox_fileCurve);
-    layoutFileCurve->addWidget(m_pushButton_selectFile);
-    layoutFileCurve->setMargin(1);
-    layoutFileCurve->setSpacing(1);
-    vBoxLayoutLeft->addLayout(layoutFileCurve);
+    QHBoxLayout *hLayoutFileCurve = new QHBoxLayout();
+    hLayoutFileCurve->setMargin(1);
+    hLayoutFileCurve->setSpacing(1);
+    hLayoutFileCurve->addWidget(labelFileCurve);
+    hLayoutFileCurve->addWidget(m_comboBox_fileCurve);
+    hLayoutFileCurve->addWidget(m_pushButton_selectFile);
+    vBoxLayoutLeft->addLayout(hLayoutFileCurve);
 
     QVBoxLayout *vBoxLayoutCurve = new QVBoxLayout();
     vBoxLayoutCurve->setMargin(1);
     vBoxLayoutCurve->setSpacing(0);
-    QLabel *labelCurveList = new QLabel("可选曲线(双击选择曲线，并添加右侧图中，最多可选6条曲线)");
+    QLabel *labelCurveList = new QLabel("可选曲线(双击选择曲线，最多可选5条曲线)");
     vBoxLayoutCurve->addWidget(labelCurveList);
+
+    QLabel *labelFilterKey = new QLabel("关键字:");
+    labelFilterKey->setMaximumWidth(45);
+    m_comboBoxFilterKey = new QComboBox;
+    m_comboBoxFilterKey->setEditable(true);
+    m_comboBoxFilterKey->setToolTip("可输入多个关键字，中间用英文逗号\",\"分隔，表示\"或\"的关系");
+//    connect(m_comboBoxFilterKey, &QComboBox::editTextChanged, this, &MainWindow2::changeFilterKey);
+    connect(m_comboBoxFilterKey, &QComboBox::currentTextChanged, this, &MainWindow2::changeFilterKey);
+    m_buttonFilter = new QPushButton("筛选");
+    m_buttonFilter->setMinimumWidth(50);
+    m_buttonFilter->setMaximumWidth(50);
+    m_buttonFilter->setEnabled(false);
+    connect(m_buttonFilter, &QPushButton::clicked, this, &MainWindow2::filterCurve);
+    m_buttonRestore = new QPushButton("还原");
+    m_buttonRestore->setMinimumWidth(50);
+    m_buttonRestore->setMaximumWidth(50);
+    m_buttonRestore->setEnabled(false);
+    connect(m_buttonRestore, &QPushButton::clicked, this, &MainWindow2::resotreCurve);
+    QHBoxLayout *hLayoutFilter = new QHBoxLayout();
+    hLayoutFilter->setMargin(1);
+    hLayoutFilter->setSpacing(1);
+    hLayoutFilter->addWidget(labelFilterKey);
+    hLayoutFilter->addWidget(m_comboBoxFilterKey);
+    hLayoutFilter->addWidget(m_buttonFilter);
+    hLayoutFilter->addWidget(m_buttonRestore);
+    vBoxLayoutCurve->addLayout(hLayoutFilter);
+
     m_listView_curve = new QListView;
     //    m_listView_curve->setSelectionMode(QAbstractItemView::MultiSelection);
     m_listView_curve->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
@@ -88,47 +116,55 @@ void MainWindow2::initUI()
     vBoxLayoutCurve->addWidget(m_listView_curve);
     vBoxLayoutLeft->addLayout(vBoxLayoutCurve);
 
-    QVBoxLayout *vBoxLayoutCurveSelected = new QVBoxLayout();
-    vBoxLayoutCurveSelected->setMargin(1);
-    vBoxLayoutCurveSelected->setSpacing(0);
-    QLabel *labelCurveSelected = new QLabel("已选曲线(双击删除曲线，并从右侧图中删除对应曲线)");
-    m_pushButton_ClearCurve = new QPushButton("清空曲线");
-    m_pushButton_ClearCurve->setMinimumWidth(80);
-    m_pushButton_ClearCurve->setMaximumWidth(80);
-    m_pushButton_ClearCurve->setEnabled(false);//初始化不可用
-    connect(m_pushButton_ClearCurve, &QPushButton::clicked, this, &MainWindow2::clearCurve);
-    QHBoxLayout *hBoxLayout1 = new QHBoxLayout();
-    hBoxLayout1->setMargin(0);
-    hBoxLayout1->setSpacing(1);
-    hBoxLayout1->addWidget(labelCurveSelected);
-    hBoxLayout1->addWidget(m_pushButton_ClearCurve);
-    vBoxLayoutCurveSelected->addLayout(hBoxLayout1);
-    m_listView_curve_selected = new QListView;
-    //    m_listView_curve_selected->setSelectionMode(QAbstractItemView::MultiSelection);
-    m_listView_curve_selected->setEditTriggers(QAbstractItemView::NoEditTriggers);//不可编辑
-    m_listView_curve_selected->setSpacing(0);
-    //    m_listView_curve_selected->setMaximumHeight(100);
-    //    m_listView_curve_selected->setMaximumHeight(200);
-    m_listView_curve_selected->setStyleSheet("QListView {background-color:white;}"
-                                             "QListView::item{border:none; height: 22px;}"
-                                             "QListView::item:selected{background: rgba(0, 120, 215,200);}"
-                                             "QListView::item::hover {background: rgba(0, 120, 215,100);}");
-    connect(m_listView_curve_selected, &QListView::doubleClicked, this, &MainWindow2::removeCurve);
-    m_model_curve_selected = new QStringListModel(this);
-    m_listView_curve_selected->setModel(m_model_curve_selected);
-    vBoxLayoutCurveSelected->addWidget(m_listView_curve_selected,1);
-    vBoxLayoutLeft->addLayout(vBoxLayoutCurveSelected);
+
+    QWidget *widgetRight = new QWidget;
+    widgetRight->setMinimumWidth(400);
+    widgetRight->setMinimumHeight(400);
+
+    QVBoxLayout *vBoxLayoutRight = new QVBoxLayout(widgetRight);
+    //    widgetRight->setLayout(vBoxLayoutRight);
+    vBoxLayoutRight->setMargin(2);
+    vBoxLayoutRight->setSpacing(5);
 
     initPlot();
 
-    vBoxLayoutLeft->setStretch(1,4);
-    vBoxLayoutLeft->setStretch(2,1);
+    m_buttonRemoveSelectedCurve = new QPushButton("移除选中的曲线");
+    m_buttonRemoveSelectedCurve->setMinimumWidth(100);
+    m_buttonRemoveSelectedCurve->setMaximumWidth(150);
+    m_buttonRemoveSelectedCurve->setEnabled(false);
+    m_buttonRemoveAllCurves = new QPushButton("移除所有曲线");
+    m_buttonRemoveAllCurves->setMinimumWidth(100);
+    m_buttonRemoveAllCurves->setMaximumWidth(150);
+    m_buttonRemoveAllCurves->setEnabled(false);
+    m_buttonViewCurvesData = new QPushButton("查看曲线数据");
+    m_buttonViewCurvesData->setMinimumWidth(100);
+    m_buttonViewCurvesData->setMaximumWidth(150);
+    m_buttonViewCurvesData->setEnabled(false);
+    m_buttonOutput = new QPushButton("导出图形");
+    m_buttonOutput->setMinimumWidth(100);
+    m_buttonOutput->setMaximumWidth(150);
+    connect(m_buttonRemoveSelectedCurve, &QPushButton::clicked, m_plot, &XxwCustomPlot::removeSelectedGraph);
+    connect(m_buttonRemoveAllCurves, &QPushButton::clicked, m_plot, &XxwCustomPlot::removeAllGraphs);
+    connect(m_buttonViewCurvesData, &QPushButton::clicked, m_plot, &XxwCustomPlot::viewGrpahData);
+    connect(m_buttonOutput, &QPushButton::clicked, m_plot, &XxwCustomPlot::outputPlot);
+    QHBoxLayout *hLayoutPlotFunction = new QHBoxLayout();
+    hLayoutPlotFunction->setMargin(1);
+    hLayoutPlotFunction->setSpacing(1);
+    hLayoutPlotFunction->addWidget(m_buttonRemoveSelectedCurve);
+    hLayoutPlotFunction->addWidget(m_buttonRemoveAllCurves);
+    hLayoutPlotFunction->addWidget(m_buttonViewCurvesData);
+    hLayoutPlotFunction->addWidget(m_buttonOutput);
+//    QSpacerItem *spacer = new QSpacerItem;
+//    hLayoutPlotFunction->addWidget(spacer);
+
+    vBoxLayoutRight->addWidget(m_plot);
+    vBoxLayoutRight->addLayout(hLayoutPlotFunction);
 
     QSplitter *splitter = new QSplitter;
     splitter->setOrientation(Qt::Horizontal);
     splitter->addWidget(widgetLeft);
-    splitter->addWidget(m_plot);
-    splitter->setStyleSheet("QSplitter:handle{background-color:white;}");
+    splitter->addWidget(widgetRight);
+    splitter->setStyleSheet("QSplitter:handle{background-color:gray;}");
 
     setCentralWidget(splitter);
 
@@ -158,6 +194,11 @@ void MainWindow2::initPlot()
     m_plot->xAxis->setLabel("时间(s)");
     m_plot->yAxis->setLabel("值");
 
+    connect(m_plot, &XxwCustomPlot::signal_removeSelectedGraph, this, &MainWindow2::removeCurve);
+    connect(m_plot, &XxwCustomPlot::signal_removeAllGraphs, this, &MainWindow2::removeAllCurves);
+
+    connect(m_plot, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
+
     // connect slot that shows a message in the status bar when a graph is clicked:
     connect(m_plot, SIGNAL(plottableClick(QCPAbstractPlottable*,int,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractPlottable*,int)));
 }
@@ -182,7 +223,13 @@ void MainWindow2::selectFileCur()
 
 void MainWindow2::openFileCur()
 {
-    clearCurve();//删除所有的曲线
+    //清空所有曲线
+    if(m_plot)
+    {
+        m_plot->removeAllGraphs();
+        m_plot->replot();
+    }
+
     if(QFile::exists(m_sFileCur))
     {
         m_curMgr.m_sFileCur = m_sFileCur;
@@ -216,17 +263,52 @@ void MainWindow2::hideWaitingDlg()
     }
 }
 
-void MainWindow2::updateCuveList()
+void MainWindow2::updateCurveList()
 {
     hideWaitingDlg();
 
     qDebug() << "更新曲线列表，开始...";
-    QStringList allTypeName = m_curMgr.m_curvesMap.keys();
-    m_model_curve->setStringList(allTypeName);
+    m_allTypeName = m_curMgr.m_curvesMap.keys();
+    m_model_curve->setStringList(m_allTypeName);
     qDebug() << "更新曲线列表，完成。";
 }
 
-void MainWindow2::addCurveToChart(const QString &sTypeName)
+void MainWindow2::changeFilterKey(const QString &key)
+{
+    m_buttonFilter->setEnabled(!(key.trimmed().isEmpty()));
+}
+
+void MainWindow2::filterCurve()
+{
+    qDebug() << "筛选曲线，开始...";
+    m_filteredTypeName.clear();
+    QString sKey = m_comboBoxFilterKey->currentText().trimmed();
+    if(sKey.isEmpty())
+    {
+        m_filteredTypeName.append(m_allTypeName);
+    }
+    foreach(QString sName, m_allTypeName)
+    {
+        if(filterCurveByKey(sName, sKey))
+            m_filteredTypeName.append(sName);
+    }
+    m_model_curve->setStringList(m_filteredTypeName);
+    m_buttonRestore->setEnabled(true);
+    m_comboBoxFilterKey->insertItem(0, sKey);
+    if(m_comboBoxFilterKey->count() > 20)
+        m_comboBoxFilterKey->removeItem(20);//只保留最近20个
+    qDebug() << "筛选曲线，完成。";
+}
+
+void MainWindow2::resotreCurve()
+{
+    m_model_curve->setStringList(m_allTypeName);
+    m_comboBoxFilterKey->setCurrentText("");
+    m_buttonFilter->setEnabled(false);
+    m_buttonRestore->setEnabled(false);
+}
+
+void MainWindow2::addCurveToPlot(const QString &sTypeName)
 {
     if(!m_plot)
         return;
@@ -252,9 +334,6 @@ void MainWindow2::addCurveToChart(const QString &sTypeName)
         pGraph->setData(xData, yData);
         pGraph->setName(sTypeName);
         QPen pen = pGraph->pen();
-        //        int iFactor = m_plot->graphCount() - 1;
-        //        QColor clr = QColor(qSin(iFactor * 1 + 1.2) * 80 + 80, qSin(iFactor*0.3 + 0) * 80 + 80, qSin(iFactor*0.3 + 1.5) * 80 + 80);
-        //        QColor clr = QColor(qrand() % 100 + 50, qrand() % 100 + 50, qrand() % 100 + 50);
         QColor clr = getRandomColor();
         pen.setColor(clr);
         pGraph->setPen(pen);
@@ -265,7 +344,7 @@ void MainWindow2::addCurveToChart(const QString &sTypeName)
 
 void MainWindow2::addCurve()
 {
-    if(m_model_curve_selected->stringList().count() >= 5)
+    if(m_plot->graphCount() >= 5)
     {
         QString sMsg = "已经选择了5条曲线，最多选择5条曲线。";
         QMessageBox::information(this, "提示", sMsg);
@@ -280,81 +359,36 @@ void MainWindow2::addCurve()
     if(sTypeName.isEmpty())
         return;
 
-    //更新可选曲线列表
-    QStringList curves = m_model_curve->stringList();
-    //    curves.removeAll(sTypeName);
-    curves.removeAt(iRow);
-    m_model_curve->setStringList(curves);
-
-    //更新已选曲线列表
-    QStringList curvesSelected = m_model_curve_selected->stringList();
-    curvesSelected.append(sTypeName);
-    m_model_curve_selected->setStringList(curvesSelected);
-
-    addCurveToChart(sTypeName);
-
-    m_pushButton_ClearCurve->setEnabled(m_model_curve_selected->stringList().count() > 0);
+    if(m_selectedTypeName.contains(sTypeName))
+    {
+        QString sMsg = "已经选择了该条曲线，请重新选择其它曲线。";
+        QMessageBox::information(this, "提示", sMsg);
+        return;
+    }
+    m_selectedTypeName.append(sTypeName);
+    addCurveToPlot(sTypeName);
+    m_buttonRemoveAllCurves->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonViewCurvesData->setEnabled(m_plot && m_plot->graphCount() > 0);
 }
 
 
-void MainWindow2::removeCurve()
+void MainWindow2::removeCurve(QString curveName)
 {
-    if(!m_plot)
-        return;
-
-    QModelIndex index = m_listView_curve_selected->currentIndex();
-    int iRow = index.row();//行号
-    if(iRow < 0)
-        return;
-    QString sTypeName = m_model_curve_selected->stringList().at(iRow);//曲线名称
-    if(sTypeName.isEmpty())
-        return;
-
-    //更新可选曲线列表
-    QStringList curves = m_model_curve->stringList();
-    curves.append(sTypeName);
-    m_model_curve->setStringList(curves);
-
-    //更新已选曲线列表
-    QStringList curvesSelected = m_model_curve_selected->stringList();
-    //    curvesSelected.removeAll(sTypeName);
-    curvesSelected.removeAt(iRow);
-    m_model_curve_selected->setStringList(curvesSelected);
-
-    m_plot->removeGraph(iRow);
-    //Rescales the axes such that all plottables (like graphs) in the plot are fully visible.
-    m_plot->rescaleAxes();
-    m_plot->replot();
-
-    m_pushButton_ClearCurve->setEnabled(m_model_curve_selected->stringList().count() > 0);
+    m_selectedTypeName.removeAll(curveName);
+    m_buttonRemoveSelectedCurve->setEnabled(m_plot && m_plot->selectedGraphs().size() > 0);
+    m_buttonRemoveAllCurves->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonViewCurvesData->setEnabled(m_plot && m_plot->graphCount() > 0);
 }
 
-
-void MainWindow2::clearCurve()
+void MainWindow2::removeAllCurves()
 {
-    if(!m_plot)
-        return;
-    QStringList curvesToClear = m_model_curve_selected->stringList();
-
-    //更新可选曲线列表
-    QStringList curves = m_model_curve->stringList();
-    foreach(QString sTypeName, curvesToClear)
-        curves.append(sTypeName);
-    m_model_curve->setStringList(curves);
-
-    //更新已选曲线列表
-    m_model_curve_selected->setStringList(QStringList());
-
-    //Removes all graphs from the plot and deletes them.
-    //Corresponding legend items are also removed from the default legend
-    m_plot->clearGraphs();
-    //Rescales the axes such that all plottables (like graphs) in the plot are fully visible.
-    m_plot->rescaleAxes();
-    m_plot->replot();
-    m_pushButton_ClearCurve->setEnabled(m_model_curve_selected->stringList().count() > 0);
+    m_selectedTypeName.clear();
+    m_buttonRemoveSelectedCurve->setEnabled(m_plot && m_plot->selectedGraphs().size() > 0);
+    m_buttonRemoveAllCurves->setEnabled(m_plot && m_plot->graphCount() > 0);
+    m_buttonViewCurvesData->setEnabled(m_plot && m_plot->graphCount() > 0);
 }
 
-void MainWindow2::fileCurChanged(const QString &file)
+void MainWindow2::changeFileCur(const QString &file)
 {
     if(m_sFileCur != file)
     {
@@ -392,4 +426,28 @@ void MainWindow2::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
     double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
     QString message = QString("单击图形：'%1'， 当前点：#%2，对应值:%3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
     statusBar()->showMessage(message, 2500);
+}
+
+void MainWindow2::selectionChanged()
+{
+    m_buttonRemoveSelectedCurve->setEnabled(m_plot && m_plot->selectedGraphs().size() > 0);
+}
+
+///
+/// \brief filterCurveByKey:通过关键字来筛选曲线名称，
+/// 即查找曲线名称中是否含有关键字，可能有多个关键字，采用逗号分割，只要包含其中一个关键字，就表示符合要求
+/// \param curveName：曲线名称
+/// \param key：关键字
+/// \return bool:true表示含有该关键字，反之就不含该关键字
+///
+bool MainWindow2::filterCurveByKey(const QString &curveName, const QString &key)
+{
+    QString sName = curveName;
+    QStringList lstKeys = key.split(',');
+    foreach (QString sKey, lstKeys)
+    {
+        if(sName.contains(sKey, Qt::CaseInsensitive))
+            return true;
+    }
+    return false;
 }
