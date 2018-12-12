@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui charts
+QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets  printsupport
 
@@ -27,7 +27,7 @@ CONFIG += c++11
 
 SOURCES += \
         main.cpp \
-        MainWindow.cpp \
+#        MainWindow.cpp \
 #    XxwCppPub/Curve.cpp \
 #    XxwCppPub/XxwCppPub.cpp \
     XCurMgr.cpp \
@@ -39,7 +39,7 @@ SOURCES += \
     CurveDataTableModel.cpp
 
 HEADERS += \
-        MainWindow.h \
+#        MainWindow.h \
 #    XxwCppPub/Curve.h \
 #    XxwCppPub/XxwCppPub.h \
     XCurMgr.h \

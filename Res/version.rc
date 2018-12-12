@@ -8,8 +8,8 @@ IDI_ICON1 ICON "curve.ico"
 #include <winver.h>
 #endif
 VS_VERSION_INFO VERSIONINFO
-    FILEVERSION 1,0,0,2
-    PRODUCTVERSION 1,0,0,2
+    FILEVERSION 1,0,0,3
+    PRODUCTVERSION 1,0,0,3
     FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
     FILEFLAGS VS_FF_DEBUG
@@ -26,8 +26,8 @@ VS_VERSION_INFO VERSIONINFO
             BEGIN
                 VALUE "CompanyName", "中国电力科学研究院-电力系统研究所-仿真室\0"
                 VALUE "FileDescription", "PSD-BPA稳定计算结果文件(*.cur)绘图工具\0"
-                VALUE "FileVersion", "1.0.0.2\0"
-                VALUE "ProductVersion", "1.0.0.2\0"
+                VALUE "FileVersion", "1.0.0.3\0"
+                VALUE "ProductVersion", "1.0.0.3\0"
                 VALUE "LegalCopyright", "版权所有 (C)中国电力科学研究院\0"
                 VALUE "LegalTrademarks", "中国电力科学研究院\0"
                 VALUE "OriginalFilename", "XCurChart.exe\0"
