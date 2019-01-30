@@ -73,6 +73,9 @@ public slots:
     //导出图形数据
     void outputGraphData();
 
+    //复制（复制图标到剪切板）
+    void copyToClipboard();
+
     //导出图形
     void outputPlot();
 

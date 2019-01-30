@@ -348,6 +348,7 @@ void XxwCustomPlot::contextMenuRequest(QPoint pos)
             menu->addAction("导出曲线数据", this, SLOT(outputGraphData()));
         }
         menu->addSeparator();
+        menu->addAction("复制图形", this, SLOT(copyToClipboard()));
         menu->addAction("导出图形", this, SLOT(outputPlot()));
         menu->addSeparator();
         QAction *action = menu->addAction("跟随鼠标显示同一时刻各曲线上的值", this, SLOT(showValueAtMousePoint()));
@@ -472,6 +473,15 @@ void XxwCustomPlot::saveCsv(const QString &fileName)
         out << "</" << pGraph->name() << ">" << sEndLine << sEndLine;
     }
     file.close();
+}
+
+//复制（复制图标到剪切板）
+void XxwCustomPlot::copyToClipboard()
+{
+    QString strFile = QCoreApplication::applicationDirPath() + "\\ScreenShot\\";
+    strFile = strFile + QDateTime::currentDateTime().toString("yyyyMMddHHmmss") + ".png";
+    QPixmap pix = QPixmap::grabWidget(this);
+    QApplication::clipboard()->setPixmap(pix);
 }
 
 //导出图形

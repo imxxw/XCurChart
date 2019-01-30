@@ -67,11 +67,11 @@ private:
     QPushButton *m_buttonFilter;
     QPushButton *m_buttonRestore;
 
-    QPushButton *m_buttonRemoveSelectedCurve;
-    QPushButton *m_buttonRemoveAllCurves;
-    QPushButton *m_buttonViewCurveData;
-    QPushButton *m_buttonOutputCurveData;
-    QPushButton *m_buttonOutputPicture;
+//    QPushButton *m_buttonRemoveSelectedCurve;
+//    QPushButton *m_buttonRemoveAllCurves;
+//    QPushButton *m_buttonViewCurveData;
+//    QPushButton *m_buttonOutputCurveData;
+//    QPushButton *m_buttonOutputPicture;
 
     QListView *m_listView_curve;//可选的曲线列表
     QStringList m_allTypeName;//所有的曲线类型和名称列表
