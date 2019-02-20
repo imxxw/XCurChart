@@ -347,6 +347,7 @@ void MainWindow2::addCurveToPlot(const QString &sTypeName)
         pen.setColor(clr);
         pGraph->setPen(pen);
         m_plot->rescaleAxes();
+        m_plot->showScatter(m_plot->isShowScatter());
         m_plot->replot();
     }
 }

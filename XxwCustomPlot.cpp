@@ -6,6 +6,7 @@
 XxwCustomPlot::XxwCustomPlot(QWidget *parent)
     :QCustomPlot(parent)
     ,m_isShowTracer(false)
+    ,m_isShowScatter(false)
 //    ,m_xTracer(Q_NULLPTR)
 //    ,m_yTracer(Q_NULLPTR)
     ,m_dataTracers(QList<XxwTracer *>())
@@ -17,8 +18,7 @@ XxwCustomPlot::XxwCustomPlot(QWidget *parent)
 
 void XxwCustomPlot::initPlot()
 {
-    this->showTracer(true);//显示追踪器
-
+//    this->showTracer(true);//显示追踪器
     // Allow user to drag axis ranges with mouse, zoom with mouse wheel and select graphs by clicking:
     /*
  enum Interaction { iRangeDrag         = 0x001 ///< <tt>0x001</tt> Axis ranges are draggable (see \ref QCPAxisRect::setRangeDrag, \ref QCPAxisRect::setRangeDragAxes)
@@ -88,7 +88,7 @@ void XxwCustomPlot::mouseMoveEvent(QMouseEvent *event)
     if(m_isShowTracer)
     {
         //当前鼠标位置（像素坐标）
-        int x_pos = event->pos().x() + 10;
+        int x_pos = event->pos().x();
         int y_pos = event->pos().y();
 
         //像素坐标转成实际的x,y轴的坐标
@@ -354,6 +354,10 @@ void XxwCustomPlot::contextMenuRequest(QPoint pos)
         QAction *action = menu->addAction("跟随鼠标显示同一时刻各曲线上的值", this, SLOT(showValueAtMousePoint()));
         action->setCheckable(true);
         action->setChecked(m_isShowTracer);
+
+        QAction *action2 = menu->addAction("突出显示曲线上的点", this, SLOT(showScatterOfCurves()));
+        action2->setCheckable(true);
+        action2->setChecked(m_isShowScatter);
     }
     menu->popup(this->mapToGlobal(pos));
 }
@@ -509,5 +513,38 @@ void XxwCustomPlot::showValueAtMousePoint()
     {
         showTracer(contextAction->isChecked());
         this->replot();
+    }
+}
+
+void XxwCustomPlot::showScatterOfCurves()
+{
+    if (QAction* contextAction = qobject_cast<QAction*>(sender())) // make sure this slot is really called by a context menu action, so it carries the data we need
+    {
+        showScatter(contextAction->isChecked());
+        this->replot();
+    }
+}
+
+//设置是否突出显示曲线上的点（圆圈显示）
+void XxwCustomPlot::showScatter(bool show)
+{
+    m_isShowScatter = show;
+    int nCount = this->graphCount();
+    for(int i = 0; i < nCount; ++i)
+    {
+        QCPGraph *pGraph = this->graph(i);
+        if(!pGraph)
+            continue;
+        QCPScatterStyle ss;//默认不显示图形
+//        ss.setShape(QCPScatterStyle::ssNone);
+//        ss.setPen(Qt::NoPen);
+        if(m_isShowScatter)
+        {
+            ss.setShape(QCPScatterStyle::ssCircle);//圆圈
+            ss.setPen(pGraph->pen());//和曲线同样颜色
+            ss.setBrush(QBrush(Qt::white));//白色充填
+            ss.setSize(8);//大小为8像素
+        }
+        pGraph->setScatterStyle(ss);//设置曲线上离散点的外观
     }
 }

@@ -43,7 +43,19 @@ public:
     /// \brief 是否显示鼠标追踪器
     /// \return
     ///
-    bool isShowTracer(){return m_isShowTracer;};
+    bool isShowTracer(){return m_isShowTracer;};    
+
+    ///
+    /// \brief 设置是否突出显示曲线上的点（圆圈显示）
+    /// \param show：是否显示
+    ///
+    void showScatter(bool show);
+
+    ///
+    /// \brief 是否突出显示曲线上的点（圆圈显示）
+    /// \return
+    ///
+    bool isShowScatter(){return m_isShowScatter;}
 
     void saveTxt(const QString &fileName);
 
@@ -82,12 +94,17 @@ public slots:
     //跟随鼠标显示曲线上的值
     void showValueAtMousePoint();
 
+    //突出显示曲线上的点（圆圈显示）
+    void showScatterOfCurves();
+
 signals:
     void signal_removeSelectedGraph(QString);
     void signal_removeAllGraphs();
 
 private:
     bool m_isShowTracer;//是否显示追踪器（鼠标在图中移动，显示对应的值）
+
+    bool m_isShowScatter;//显示曲线上的点
 //    XxwTracer *m_xTracer;//x轴
 //    XxwTracer *m_yTracer;//y轴
     QList<XxwTracer *> m_dataTracers;//
