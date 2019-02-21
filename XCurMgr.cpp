@@ -129,7 +129,7 @@ void XCurMgr::openFile()
         sName[79] = 0;
         if(0 == i)
         {
-            QString curve_name = sName;
+            QString curve_name = QString::fromLocal8Bit(sName);
             curve_name = curve_name.trimmed();
             //第一条曲线是"步长h(sec.)"，则不是BPA输出的曲线
             //否则就是BPA输出的曲线

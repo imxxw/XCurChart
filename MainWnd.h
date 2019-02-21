@@ -12,13 +12,13 @@
 #include <QComboBox>
 #include <QMap>
 
-class MainWindow2 : public QMainWindow
+class MainWnd : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow2(QString fileCur, QWidget *parent = 0);
-    ~MainWindow2();
+    MainWnd(QString fileCur, QWidget *parent = 0);
+    ~MainWnd();
 
     void initUI();
     void initPlot();
